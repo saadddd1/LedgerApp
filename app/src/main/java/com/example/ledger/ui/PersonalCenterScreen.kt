@@ -206,7 +206,7 @@ private fun LoginSection(
     onMessage: (String?) -> Unit,
     viewModel: ItemViewModel
 ) {
-    var phone by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
     var countdown by remember { mutableStateOf(0) }
@@ -220,19 +220,19 @@ private fun LoginSection(
     Text("登录后可使用云端同步", fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 32.dp))
 
-    OutlinedTextField(value = phone, onValueChange = { phone = it.filter { c -> c.isDigit() }.take(11) },
-        label = { Text("手机号") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+    OutlinedTextField(value = email, onValueChange = { email = it.trim().take(64) },
+        label = { Text("邮箱") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
     Spacer(modifier = Modifier.height(12.dp))
 
     OutlinedButton(
         onClick = {
-            if (phone.length != 11) { onMessage("手机号得是11位吧"); return@OutlinedButton }
+            if (!email.contains("@")) { onMessage("请输入正确的邮箱地址"); return@OutlinedButton }
             scope.launch {
                 isSending = true
                 try {
-                    ApiClient.apiService.sendCode(SendCodeRequest(phone))
+                    ApiClient.apiService.sendCode(SendCodeRequest(email))
                     countdown = 60
                     onMessage("验证码已发送（开发模式用 123456）")
                 } catch (e: Exception) {
@@ -240,7 +240,7 @@ private fun LoginSection(
                 } finally { isSending = false }
             }
         },
-        enabled = phone.length == 11 && countdown == 0 && !isSending,
+        enabled = email.contains("@") && countdown == 0 && !isSending,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().height(44.dp)
     ) {
@@ -257,13 +257,13 @@ private fun LoginSection(
 
     Button(
         onClick = {
-            if (phone.length != 11 || code.length < 4) {
-                onMessage("手机号和验证码总得填对吧"); return@Button
+            if (!email.contains("@") || code.length < 4) {
+                onMessage("邮箱和验证码总得填对吧"); return@Button
             }
             scope.launch {
                 onLoadingChange(true)
                 try {
-                    val response = ApiClient.apiService.verifyCode(VerifyCodeRequest(phone, code))
+                    val response = ApiClient.apiService.verifyCode(VerifyCodeRequest(email, code))
                     AuthSession.login(response.token, response.isVip, response.userId, response.vipExpireAt)
 
                     if (response.isVip) {
