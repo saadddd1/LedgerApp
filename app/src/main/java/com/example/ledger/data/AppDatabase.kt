@@ -30,7 +30,7 @@ abstract class AppDatabase : RoomDatabase(), Closeable {
                     AppDatabase::class.java,
                     "ledger_database"
                 )
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(false)
                 .enableMultiInstanceInvalidation()
                 .build()
                 INSTANCE = instance

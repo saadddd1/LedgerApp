@@ -2,59 +2,74 @@ package com.example.ledger.network
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.http.Body
-import retrofit2.http.POST
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 
-data class LoginRequest(
+// --- Auth ---
+data class SendCodeRequest(
+    @SerializedName("phone") val phone: String
+)
+data class SendCodeResponse(
+    @SerializedName("success") val success: Boolean
+)
+
+data class VerifyCodeRequest(
     @SerializedName("phone") val phone: String,
     @SerializedName("code") val code: String
 )
-data class LoginResponse(
+data class VerifyCodeResponse(
     @SerializedName("token") val token: String,
     @SerializedName("userId") val userId: String,
     @SerializedName("isVip") val isVip: Boolean,
     @SerializedName("vipExpireAt") val vipExpireAt: Long?
 )
 
-data class WechatLoginRequest(
-    @SerializedName("code") val code: String
-)
-
-data class SyncDataRequest(
+// --- Sync ---
+data class SyncUploadRequest(
     @SerializedName("dataJson") val dataJson: String
 )
-data class SyncDataResponse(
+data class SyncResponse(
     @SerializedName("success") val success: Boolean,
-    @SerializedName("message") val message: String
+    @SerializedName("message") val message: String?
 )
 
+data class SyncDownloadResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("dataJson") val dataJson: String?,
+    @SerializedName("updatedAt") val updatedAt: Long?,
+    @SerializedName("message") val message: String?
+)
+
+// --- VIP ---
 data class VipPayRequest(
     @SerializedName("planId") val planId: String,
     @SerializedName("payMethod") val payMethod: String
-) // payMethod: "alipay" or "wechat"
+)
 data class VipPayResponse(
     @SerializedName("orderId") val orderId: String,
-    @SerializedName("payUrl") val payUrl: String
+    @SerializedName("payUrl") val payUrl: String?,
+    @SerializedName("vipExpireAt") val vipExpireAt: Long?
 )
 
 interface ApiService {
-    // 1. 手机号登录/注册
-    @POST("/api/auth/login/phone")
-    suspend fun loginByPhone(@Body request: LoginRequest): LoginResponse
+    @POST("/api/auth/send-code")
+    suspend fun sendCode(@Body request: SendCodeRequest): SendCodeResponse
 
-    // 2. 微信登录/注册
-    @POST("/api/auth/login/wechat")
-    suspend fun loginByWechat(@Body request: WechatLoginRequest): LoginResponse
+    @POST("/api/auth/verify-code")
+    suspend fun verifyCode(@Body request: VerifyCodeRequest): VerifyCodeResponse
 
-    // 3. 数据云同步 (需要开通VIP会员)
     @POST("/api/sync/upload")
     suspend fun uploadSyncData(
         @Header("Authorization") token: String,
-        @Body request: SyncDataRequest
-    ): SyncDataResponse
+        @Body request: SyncUploadRequest
+    ): SyncResponse
 
-    // 4. 获取支付参数，购买VIP
+    @GET("/api/sync/download")
+    suspend fun downloadSyncData(
+        @Header("Authorization") token: String
+    ): SyncDownloadResponse
+
     @POST("/api/vip/pay")
     suspend fun createVipOrder(
         @Header("Authorization") token: String,

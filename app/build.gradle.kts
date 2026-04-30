@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    // kotlin-android removed — built-in Kotlin via AGP 9
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
@@ -62,6 +61,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Room
     val room_version = "2.7.1"
@@ -77,6 +77,12 @@ dependencies {
 
     // Kotlin Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.1.4")
+
+    // Security (Encrypted SharedPreferences)
+    implementation("androidx.security:security-crypto:1.1.0-alpha07")
 
     // Network (Retrofit + OkHttp + Gson)
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

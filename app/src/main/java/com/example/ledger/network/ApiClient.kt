@@ -7,8 +7,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    // 这里填入你未来阿里云服务器的IP或域名，现在先用本地或占位域名代替
-    private const val BASE_URL = "http://your-aliyun-server-ip.com"
+    // 10.0.2.2 = Android emulator's alias for host machine's localhost
+    // Change to your server IP/domain before release
+    const val BASE_URL = "http://10.0.2.2:8080"
 
     private val okHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {

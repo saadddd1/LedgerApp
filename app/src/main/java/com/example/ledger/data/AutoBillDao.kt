@@ -2,6 +2,7 @@ package com.example.ledger.data
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -17,11 +18,17 @@ interface AutoBillDao {
     @Insert
     suspend fun insertAutoBill(bill: AutoBill)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllAutoBills(bills: List<AutoBill>)
+
     @Update
     suspend fun updateAutoBill(bill: AutoBill)
 
     @Query("DELETE FROM auto_bills WHERE id = :billId")
     suspend fun deleteAutoBill(billId: Int)
+
+    @Query("DELETE FROM auto_bills")
+    suspend fun deleteAllAutoBills()
 
     @Query("SELECT COUNT(*) FROM auto_bills")
     suspend fun getCount(): Int

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const vipController = require('../controllers/vip.controller');
-const { authenticateToken } = require('../utils/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 // 获取支付参数（需要登录）
 router.post('/pay', authenticateToken, vipController.createVipOrder);

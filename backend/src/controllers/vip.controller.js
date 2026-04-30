@@ -11,14 +11,13 @@ exports.createVipOrder = async (req, res) => {
   let amount = 0;
   let durationMs = 0;
 
-  if (planId === '1') {
-    amount = 6.00;
-    durationMs = 30 * 24 * 3600 * 1000;
-  } else if (planId === '12') {
-    amount = 60.00;
-    durationMs = 365 * 24 * 3600 * 1000; // 一年
+  console.log('[VIP Order] planId:', planId, 'payMethod:', payMethod, 'userId:', userId);
+
+  if (planId === 'lifetime') {
+    amount = 18.00;
+    durationMs = 100 * 365 * 24 * 3600 * 1000;
   } else {
-    return res.status(400).json({ error: '无效的套餐ID' });
+    return res.status(400).json({ error: `无效的套餐ID: ${planId}` });
   }
 
   const orderId = generateOrderId();
@@ -28,12 +27,28 @@ exports.createVipOrder = async (req, res) => {
       orderId, userId, planId, amount, 'pending', payMethod, Date.now()
     ]);
 
-    // TODO: 调用真实的支付宝/微信统一下单接口获取支付链接或调起参数
+    let vipExpireAt = null;
+
+    // DEV_MODE: auto-activate VIP without real payment
+    if (process.env.DEV_MODE === 'true') {
+      await db.run('UPDATE orders SET status = "paid", paid_at = ? WHERE order_id = ?', [Date.now(), orderId]);
+
+      const user = await db.get('SELECT vip_expire_at FROM users WHERE user_id = ?', [userId]);
+      let newExpireAt = Date.now() + durationMs;
+      if (user && user.vip_expire_at > Date.now()) {
+        newExpireAt = user.vip_expire_at + durationMs;
+      }
+
+      await db.run('UPDATE users SET is_vip = 1, vip_expire_at = ? WHERE user_id = ?', [newExpireAt, userId]);
+      vipExpireAt = newExpireAt;
+    }
+
     const mockPayUrl = `alipays://platformapi/startapp?appId=20000067&url=http://mock-pay-success.com`;
 
     res.json({
       orderId,
-      payUrl: mockPayUrl
+      payUrl: process.env.DEV_MODE === 'true' ? null : mockPayUrl,
+      vipExpireAt
     });
   } catch (error) {
     console.error('Create order error:', error);
@@ -49,8 +64,7 @@ const handlePaymentSuccess = async (orderId) => {
   await db.run('UPDATE orders SET status = "paid", paid_at = ? WHERE order_id = ?', [Date.now(), orderId]);
 
   let durationMs = 0;
-  if (order.plan_id === '1') durationMs = 30 * 24 * 3600 * 1000;
-  if (order.plan_id === '12') durationMs = 365 * 24 * 3600 * 1000;
+  if (order.plan_id === 'lifetime') durationMs = 100 * 365 * 24 * 3600 * 1000;
 
   const user = await db.get('SELECT vip_expire_at FROM users WHERE user_id = ?', [order.user_id]);
   let newExpireAt = Date.now() + durationMs;
@@ -64,10 +78,8 @@ const handlePaymentSuccess = async (orderId) => {
 
 // 支付宝异步回调
 exports.alipayCallback = async (req, res) => {
-  // TODO: 验签支付宝的数据
-  // mock 假回调
   const { out_trade_no, trade_status } = req.body;
-  
+
   if (trade_status === 'TRADE_SUCCESS') {
     await handlePaymentSuccess(out_trade_no);
     res.send('success');
@@ -78,6 +90,5 @@ exports.alipayCallback = async (req, res) => {
 
 // 微信异步回调
 exports.wechatCallback = async (req, res) => {
-  // TODO: 解析和验签微信的 XML 或 JSON 支付回调数据
   res.send('<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>');
 };

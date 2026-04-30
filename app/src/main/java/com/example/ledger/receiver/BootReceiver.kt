@@ -6,8 +6,8 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import com.example.ledger.service.NotificationMonitorService
-import com.example.ledger.ui.isNotificationListenerEnabled
-import com.example.ledger.ui.isAccessibilityServiceEnabled
+import com.example.ledger.ui.tab.isNotificationListenerEnabled
+import com.example.ledger.ui.tab.isAccessibilityServiceEnabled
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
