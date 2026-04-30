@@ -1,7 +1,9 @@
 package com.example.ledger.domain.usecase
 
 import com.example.ledger.data.AutoBill
+import com.example.ledger.data.ExpenseRecord
 import com.example.ledger.data.Item
+import com.example.ledger.data.RecurringExpense
 import com.example.ledger.domain.model.Statistics
 import java.time.Instant
 import java.time.LocalDate
@@ -17,7 +19,12 @@ object CalculateStatistics {
     private val yearFormat = DateTimeFormatter.ofPattern("yyyy")
     private val monthLabelFormat = DateTimeFormatter.ofPattern("yyyy年 MM月")
 
-    fun calculate(items: List<Item>, allBills: List<AutoBill>): Statistics {
+    fun calculate(
+        items: List<Item>,
+        allBills: List<AutoBill>,
+        expenseRecords: List<ExpenseRecord> = emptyList(),
+        activeTemplates: List<RecurringExpense> = emptyList()
+    ): Statistics {
         val nowMillis = System.currentTimeMillis()
         val now = Instant.ofEpochMilli(nowMillis)
         val zone = ZoneId.systemDefault()
@@ -92,6 +99,38 @@ object CalculateStatistics {
                 recentYears.add(Pair("${key}年", yearlySums[key] ?: 0.0))
             }
 
+        // Living expenses
+        val totalLivingExpenses = expenseRecords.sumOf { it.amount }
+
+        val livingMonthlyMap = mutableMapOf<String, Double>()
+        var thisMonthLivingExpenses = 0.0
+        var thisYearLivingExpenses = 0.0
+
+        for (record in expenseRecords) {
+            val instant = Instant.ofEpochMilli(record.dateMillis)
+            val localDate = instant.atZone(zone).toLocalDate()
+            val monthKey = localDate.format(monthFormat)
+            livingMonthlyMap.merge(monthKey, record.amount, Double::plus)
+            if (monthKey == thisMonthKey) thisMonthLivingExpenses += record.amount
+            if (localDate.format(yearFormat) == thisYearKey) thisYearLivingExpenses += record.amount
+        }
+
+        val monthlyLivingList = mutableListOf<Pair<String, Double>>()
+        monthlyLivingList.add(Pair("这个月生活费", thisMonthLivingExpenses))
+        livingMonthlyMap.keys
+            .filter { it != thisMonthKey }
+            .sortedDescending()
+            .forEach { key ->
+                val label = runCatching {
+                    YearMonth.parse(key).format(monthLabelFormat)
+                }.getOrDefault(key)
+                monthlyLivingList.add(Pair(label, livingMonthlyMap[key] ?: 0.0))
+            }
+
+        val activeRecurringCount = activeTemplates.size
+        val livingVsAssetsRatio = if (totalLivingExpenses > totalSpent) "生活费为主"
+            else if (totalSpent > 0) "家当为主" else "暂无数据"
+
         return Statistics(
             totalSpent = totalSpent,
             totalRecovered = totalRecovered,
@@ -106,7 +145,13 @@ object CalculateStatistics {
             thisMonthSpending = thisMonthSpending,
             thisYearSpending = thisYearSpending,
             recentMonths = recentMonths,
-            recentYears = recentYears
+            recentYears = recentYears,
+            totalLivingExpenses = totalLivingExpenses,
+            thisMonthLivingExpenses = thisMonthLivingExpenses,
+            thisYearLivingExpenses = thisYearLivingExpenses,
+            monthlyLivingExpenses = monthlyLivingList,
+            activeRecurringCount = activeRecurringCount,
+            livingVsAssetsRatio = livingVsAssetsRatio
         )
     }
 }

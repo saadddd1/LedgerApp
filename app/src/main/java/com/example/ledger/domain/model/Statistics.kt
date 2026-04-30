@@ -14,5 +14,11 @@ data class Statistics(
     val thisMonthSpending: Double,
     val thisYearSpending: Double,
     val recentMonths: List<Pair<String, Double>>,
-    val recentYears: List<Pair<String, Double>>
+    val recentYears: List<Pair<String, Double>>,
+    val totalLivingExpenses: Double,
+    val thisMonthLivingExpenses: Double,
+    val thisYearLivingExpenses: Double,
+    val monthlyLivingExpenses: List<Pair<String, Double>>,
+    val activeRecurringCount: Int,
+    val livingVsAssetsRatio: String
 )

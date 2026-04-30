@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.ledger.data.AutoBill
+import com.example.ledger.data.ExpenseRecord
 import com.example.ledger.data.Item
+import com.example.ledger.data.RecurringExpense
 import com.example.ledger.domain.model.Statistics
 import com.example.ledger.domain.usecase.CalculateStatistics
 
@@ -28,10 +30,12 @@ import com.example.ledger.domain.usecase.CalculateStatistics
 fun OverviewTab(
     items: List<Item>,
     allBills: List<AutoBill>,
+    expenseRecords: List<ExpenseRecord> = emptyList(),
+    activeTemplates: List<RecurringExpense> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-    val statistics = remember(items, allBills) {
-        CalculateStatistics.calculate(items, allBills)
+    val statistics = remember(items, allBills, expenseRecords, activeTemplates) {
+        CalculateStatistics.calculate(items, allBills, expenseRecords, activeTemplates)
     }
 
     LazyColumn(
@@ -41,6 +45,7 @@ fun OverviewTab(
     ) {
         item { AssetSummaryCard(statistics) }
         item { SpendingHistoryCard(statistics) }
+        item { LivingExpenseCard(statistics) }
         item { StatusCard(statistics) }
         item { Spacer(modifier = Modifier.height(24.dp)) }
     }
@@ -107,6 +112,53 @@ private fun SpendingHistoryCard(stats: Statistics) {
             ExpandableOverviewRow(stats.recentMonths, MaterialTheme.colorScheme.error, bold = true)
             Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
             ExpandableOverviewRow(stats.recentYears, MaterialTheme.colorScheme.onSurface, bold = false)
+        }
+    }
+}
+
+@Composable
+private fun LivingExpenseCard(stats: Statistics) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
+            Text("生活开销", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("累计生活费", style = MaterialTheme.typography.bodyLarge)
+                Text("¥${String.format("%.2f", stats.totalLivingExpenses)}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+            }
+
+            if (stats.totalLivingExpenses > 0) {
+                Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("本月开销", style = MaterialTheme.typography.bodyMedium)
+                    Text("¥${String.format("%.2f", stats.thisMonthLivingExpenses)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("周期账单", style = MaterialTheme.typography.bodyMedium)
+                    Text("${stats.activeRecurringCount} 项", style = MaterialTheme.typography.bodyMedium)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    stats.livingVsAssetsRatio,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                if (stats.monthlyLivingExpenses.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
+                    ExpandableOverviewRow(stats.monthlyLivingExpenses, MaterialTheme.colorScheme.error, bold = true)
+                }
+            } else {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "还没有记过生活开销，去「开销」页添加吧",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

@@ -7,8 +7,12 @@ import com.example.ledger.data.AppDatabase
 import com.example.ledger.data.AuthSession
 import com.example.ledger.data.AutoBill
 import com.example.ledger.data.AutoBillDao
+import com.example.ledger.data.ExpenseRecord
+import com.example.ledger.data.ExpenseRecordDao
 import com.example.ledger.data.Item
 import com.example.ledger.data.ItemDao
+import com.example.ledger.data.RecurringExpense
+import com.example.ledger.data.RecurringExpenseDao
 import com.example.ledger.domain.model.SyncPayload
 import com.example.ledger.network.ApiClient
 import com.example.ledger.network.SyncUploadRequest
@@ -21,7 +25,9 @@ import kotlinx.coroutines.launch
 
 class ItemViewModel(
     private val itemDao: ItemDao,
-    private val autoBillDao: AutoBillDao
+    private val autoBillDao: AutoBillDao,
+    private val expenseRecordDao: ExpenseRecordDao,
+    private val recurringExpenseDao: RecurringExpenseDao
 ) : ViewModel() {
 
     private val gson = Gson()
@@ -36,10 +42,26 @@ class ItemViewModel(
     val allBills: StateFlow<List<AutoBill>> = autoBillDao.getAllAutoBills()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val expenseRecords: StateFlow<List<ExpenseRecord>> = expenseRecordDao.getAllRecords()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val activeTemplates: StateFlow<List<RecurringExpense>> = recurringExpenseDao.getActiveTemplates()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allTemplates: StateFlow<List<RecurringExpense>> = recurringExpenseDao.getAllTemplates()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     suspend fun exportAllData(): String {
         val items = itemDao.getAllItems().first()
         val autoBills = autoBillDao.getAllAutoBills().first()
-        val payload = SyncPayload(items = items, autoBills = autoBills)
+        val expenseRecords = expenseRecordDao.getAllRecordsList()
+        val recurringExpenses = recurringExpenseDao.getAllTemplatesList()
+        val payload = SyncPayload(
+            items = items,
+            autoBills = autoBills,
+            expenseRecords = expenseRecords,
+            recurringExpenses = recurringExpenses
+        )
         return gson.toJson(payload)
     }
 
@@ -49,12 +71,12 @@ class ItemViewModel(
             val payload = gson.fromJson(json, SyncPayload::class.java)
             itemDao.deleteAllItems()
             autoBillDao.deleteAllAutoBills()
-            if (payload.items.isNotEmpty()) {
-                itemDao.insertAllItems(payload.items)
-            }
-            if (payload.autoBills.isNotEmpty()) {
-                autoBillDao.insertAllAutoBills(payload.autoBills)
-            }
+            expenseRecordDao.deleteAllRecords()
+            recurringExpenseDao.deleteAllTemplates()
+            if (payload.items.isNotEmpty()) itemDao.insertAllItems(payload.items)
+            if (payload.autoBills.isNotEmpty()) autoBillDao.insertAllAutoBills(payload.autoBills)
+            if (payload.expenseRecords.isNotEmpty()) expenseRecordDao.insertAllRecords(payload.expenseRecords)
+            if (payload.recurringExpenses.isNotEmpty()) recurringExpenseDao.insertAllTemplates(payload.recurringExpenses)
         } finally {
             syncing = false
         }
@@ -127,10 +149,94 @@ class ItemViewModel(
         }
     }
 
+    // Expense record operations
+
+    fun addExpenseRecord(name: String, amount: Double, dateMillis: Long, category: String, note: String?) {
+        viewModelScope.launch {
+            expenseRecordDao.insertRecord(ExpenseRecord(
+                name = name, amount = amount, dateMillis = dateMillis,
+                category = category, source = "MANUAL", note = note
+            ))
+            triggerAutoSync()
+        }
+    }
+
+    fun updateExpenseRecord(record: ExpenseRecord, name: String, amount: Double, dateMillis: Long, category: String, note: String?) {
+        viewModelScope.launch {
+            expenseRecordDao.updateRecord(record.copy(
+                name = name, amount = amount, dateMillis = dateMillis,
+                category = category, note = note
+            ))
+            triggerAutoSync()
+        }
+    }
+
+    fun deleteExpenseRecord(id: Int) {
+        viewModelScope.launch {
+            expenseRecordDao.deleteRecord(id)
+            triggerAutoSync()
+        }
+    }
+
+    // Recurring expense operations
+
+    fun addRecurringExpense(
+        name: String, amount: Double, category: String,
+        period: String, dayOfMonth: Int, startMonth: Int,
+        initialDeposit: Double?, note: String?
+    ) {
+        viewModelScope.launch {
+            val templateId = recurringExpenseDao.insertTemplate(RecurringExpense(
+                name = name, amount = amount, category = category,
+                period = period, dayOfMonth = dayOfMonth, startMonth = startMonth,
+                initialDeposit = initialDeposit, note = note
+            )).toInt()
+            if (initialDeposit != null && initialDeposit > 0) {
+                expenseRecordDao.insertRecord(ExpenseRecord(
+                    name = "$name (押金)", amount = initialDeposit,
+                    dateMillis = System.currentTimeMillis(),
+                    category = category, source = "DEPOSIT",
+                    templateId = templateId
+                ))
+            }
+            triggerAutoSync()
+        }
+    }
+
+    fun updateRecurringExpense(
+        template: RecurringExpense, name: String, amount: Double,
+        category: String, period: String, dayOfMonth: Int, startMonth: Int, note: String?
+    ) {
+        viewModelScope.launch {
+            recurringExpenseDao.updateTemplate(template.copy(
+                name = name, amount = amount, category = category,
+                period = period, dayOfMonth = dayOfMonth, startMonth = startMonth, note = note
+            ))
+            triggerAutoSync()
+        }
+    }
+
+    fun toggleRecurringExpense(template: RecurringExpense) {
+        viewModelScope.launch {
+            recurringExpenseDao.updateTemplate(template.copy(isActive = !template.isActive))
+            triggerAutoSync()
+        }
+    }
+
+    fun deleteRecurringExpense(id: Int) {
+        viewModelScope.launch {
+            recurringExpenseDao.deleteTemplate(id)
+            triggerAutoSync()
+        }
+    }
+
     class Factory(private val db: AppDatabase) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ItemViewModel(db.itemDao(), db.autoBillDao()) as T
+            return ItemViewModel(
+                db.itemDao(), db.autoBillDao(),
+                db.expenseRecordDao(), db.recurringExpenseDao()
+            ) as T
         }
     }
 }
