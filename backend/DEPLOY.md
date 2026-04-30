@@ -199,7 +199,30 @@ netstat -tlnp | grep 8080
 
 ---
 
-## 10. 故障排查
+## 10. 服务器迁移
+
+所有数据在一个文件里：**`ledger.db`**。换服务器只需复制两个文件：
+
+```bash
+# 在旧服务器上，把文件传过去
+scp ~/projects/LedgerApp/backend/ledger.db ubuntu@新IP:~/
+scp ~/projects/LedgerApp/backend/.env ubuntu@新IP:~/
+```
+
+在新服务器上照常部署（装 Node.js、Git、PM2、Clone 代码），然后把文件放回去：
+
+```bash
+cp ~/ledger.db ~/projects/LedgerApp/backend/
+cp ~/.env ~/projects/LedgerApp/backend/
+cd ~/projects/LedgerApp/backend
+npm install
+pm2 start src/index.js --name twoledger --time
+pm2 save
+```
+
+不需要重写任何代码，不需要重装数据库。App 里把 `ApiClient.kt` 的 IP 换成新地址重新编译就行。
+
+## 11. 故障排查
 
 | 现象 | 检查 |
 |------|------|

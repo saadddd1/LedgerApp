@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ledger.data.Item
 import java.time.Instant
 import java.time.ZoneId
@@ -67,8 +66,7 @@ fun ItemCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.name,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = alphaFactor)
                     )
                     if (item.isSold) {
@@ -79,8 +77,8 @@ fun ItemCard(
                         ) {
                             Text(
                                 "已脱手",
+                                style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor)
                             )
                         }
@@ -93,12 +91,12 @@ fun ItemCard(
                     }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("改一下") },
+                            text = { Text("改一下", style = MaterialTheme.typography.bodyMedium) },
                             onClick = { expanded = false; onEdit() },
                             leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = "编辑", tint = MaterialTheme.colorScheme.primary) }
                         )
                         DropdownMenuItem(
-                            text = { Text("不要了", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("不要了", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) },
                             onClick = { expanded = false; onDelete() },
                             leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.error) }
                         )
@@ -108,37 +106,37 @@ fun ItemCard(
 
             Column {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("入手价: ¥${String.format("%.2f", item.price)}", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = alphaFactor))
-                    Text("入手日: $dateStr", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
+                    Text("入手价: ¥${String.format("%.2f", item.price)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = alphaFactor))
+                    Text("入手日: $dateStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
                 }
                 if (item.isSold) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("回血了: ¥${String.format("%.2f", item.residualValue)}", fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
+                        Text("回血了: ¥${String.format("%.2f", item.residualValue)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
                         if (soldDateStr != null)
-                            Text("脱手日: $soldDateStr", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
+                            Text("脱手日: $soldDateStr", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
                     }
                 }
             }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                 Column {
-                    Text("陪伴了你 $daysPassed 天", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
+                    Text("陪伴了你 $daysPassed 天", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
                     if (!item.isSold) {
                         TextButton(onClick = onSell, contentPadding = PaddingValues(0.dp), modifier = Modifier.height(30.dp)) {
-                            Text("挂了咸鱼没？", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+                            Text("挂了咸鱼没？", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                         }
                     } else {
                         Spacer(modifier = Modifier.height(30.dp))
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("每天烧你", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
+                    Text("每天烧你", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alphaFactor))
                     Text(
                         "¥${String.format("%.2f", dailyCost)}",
-                        fontSize = 28.sp,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = if (item.isSold) MaterialTheme.colorScheme.onSurface.copy(alpha = alphaFactor) else MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

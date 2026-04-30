@@ -74,7 +74,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("账本", fontWeight = FontWeight.SemiBold, fontSize = 17.sp) },
+                title = { Text("账本", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToPersonalCenter) {
                         Icon(

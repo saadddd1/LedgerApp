@@ -24,6 +24,7 @@ fun ItemListTab(
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 "空空如也 — 连一件吃灰的家当都没有？",
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

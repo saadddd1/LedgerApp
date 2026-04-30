@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ledger.data.AutoBill
 import java.time.Instant
 import java.time.ZoneId
@@ -48,8 +47,7 @@ fun AutoBillCard(
             ) {
                 Text(
                     text = bill.merchantName,
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Box(contentAlignment = Alignment.TopEnd) {
@@ -60,13 +58,13 @@ fun AutoBillCard(
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         if (!bill.paymentMethod.isNullOrBlank()) {
                             DropdownMenuItem(
-                                text = { Text("怎么付的：${bill.paymentMethod}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                text = { Text("怎么付的：${bill.paymentMethod}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { expanded = false }
                             )
                         }
                         if (!bill.fullPayeeName.isNullOrBlank()) {
                             DropdownMenuItem(
-                                text = { Text("钱给了谁：${bill.fullPayeeName}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                text = { Text("钱给了谁：${bill.fullPayeeName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = { expanded = false }
                             )
                             HorizontalDivider()
@@ -74,12 +72,12 @@ fun AutoBillCard(
                             HorizontalDivider()
                         }
                         DropdownMenuItem(
-                            text = { Text("改一下", color = MaterialTheme.colorScheme.primary) },
+                            text = { Text("改一下", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium) },
                             onClick = { expanded = false; onEdit() },
                             leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = "编辑", tint = MaterialTheme.colorScheme.primary) }
                         )
                         DropdownMenuItem(
-                            text = { Text("不是我的账", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("不是我的账", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) },
                             onClick = { expanded = false; onDismiss() },
                             leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = "忽略", tint = MaterialTheme.colorScheme.error) }
                         )
@@ -93,8 +91,8 @@ fun AutoBillCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("渠道: ${bill.appSource}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(dateStr, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("渠道: ${bill.appSource}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(dateStr, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -105,8 +103,8 @@ fun AutoBillCard(
             ) {
                 Text(
                     text = "¥${String.format("%.2f", bill.amount)}",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 FilledTonalButton(
@@ -115,7 +113,7 @@ fun AutoBillCard(
                 ) {
                     Icon(Icons.Outlined.Check, contentDescription = "导入", modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("计入家当", fontWeight = FontWeight.SemiBold)
+                    Text("计入家当", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }

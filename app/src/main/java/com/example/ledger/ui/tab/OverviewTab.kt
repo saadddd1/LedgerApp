@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ledger.data.AutoBill
 import com.example.ledger.data.Item
 import com.example.ledger.domain.model.Statistics
@@ -53,26 +51,42 @@ private fun AssetSummaryCard(stats: Statistics) {
     ElevatedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
             Text("家当总账", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(20.dp))
-            OverviewRow("这些年败掉的总数", "¥${String.format("%.2f", stats.totalSpent)}", 18.sp)
-            if (stats.totalRecovered > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
-                OverviewRow("在咸鱼上回的血", "¥${String.format("%.2f", stats.totalRecovered)}", 16.sp, MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("这些年败掉的总数", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("¥${String.format("%.2f", stats.totalSpent)}", style = MaterialTheme.typography.headlineMedium)
+                }
+                if (stats.totalRecovered > 0) {
+                    Text("回血 ¥${String.format("%.2f", stats.totalRecovered)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
-            OverviewRow("真正烧掉的钱", "¥${String.format("%.2f", stats.netSpend)}", 26.sp, MaterialTheme.colorScheme.error, bold = true)
-            Spacer(modifier = Modifier.height(16.dp))
-            OverviewRow("每天一睁眼就亏掉", "¥${String.format("%.2f", stats.totalDailyCost)}", 16.sp)
-            if (stats.worstItemName != null && stats.worstDailyCost > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("最烧钱的家当", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        "${stats.worstItemName} 每天 ¥${String.format("%.2f", stats.worstDailyCost)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                    )
+
+            Spacer(modifier = Modifier.height(20.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(20.dp))
+
+            Column {
+                Text("真正烧掉的钱", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("¥${String.format("%.2f", stats.netSpend)}", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.error)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(20.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("每天一睁眼就亏掉", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("¥${String.format("%.2f", stats.totalDailyCost)}", style = MaterialTheme.typography.titleLarge)
+                }
+                if (stats.worstItemName != null && stats.worstDailyCost > 0) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("最烧钱的家当", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(stats.worstItemName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text("每天 ¥${String.format("%.2f", stats.worstDailyCost)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f))
+                    }
                 }
             }
         }
@@ -85,11 +99,14 @@ private fun SpendingHistoryCard(stats: Statistics) {
         Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
             Text("花钱流水", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(20.dp))
-            OverviewRow("自动抓取账单", "${stats.billCount} 笔", 18.sp)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("自动抓取账单", style = MaterialTheme.typography.bodyLarge)
+                Text("${stats.billCount} 笔", style = MaterialTheme.typography.titleMedium)
+            }
             Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
-            ExpandableOverviewRow(stats.recentMonths, MaterialTheme.colorScheme.error, 26.sp, bold = true)
+            ExpandableOverviewRow(stats.recentMonths, MaterialTheme.colorScheme.error, bold = true)
             Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
-            ExpandableOverviewRow(stats.recentYears, MaterialTheme.colorScheme.onSurface, 18.sp)
+            ExpandableOverviewRow(stats.recentYears, MaterialTheme.colorScheme.onSurface, bold = false)
         }
     }
 }
@@ -100,12 +117,21 @@ private fun StatusCard(stats: Statistics) {
         Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
             Text("家当现状", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(20.dp))
-            OverviewRow("还在吃灰的", "${stats.activeItems} 件", 18.sp)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("还在吃灰的", style = MaterialTheme.typography.bodyLarge)
+                Text("${stats.activeItems} 件", style = MaterialTheme.typography.titleMedium)
+            }
             Spacer(modifier = Modifier.height(12.dp))
-            OverviewRow("成功脱手的", "${stats.soldItems} 件", 16.sp, MaterialTheme.colorScheme.primary)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("成功脱手的", style = MaterialTheme.typography.bodyLarge)
+                Text("${stats.soldItems} 件", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            }
             if (stats.activeItems > 0) {
                 Spacer(modifier = Modifier.height(16.dp)); HorizontalDivider(); Spacer(modifier = Modifier.height(16.dp))
-                OverviewRow("本月预计折旧", "¥${String.format("%.2f", stats.monthDepreciation)}", 18.sp, MaterialTheme.colorScheme.error.copy(alpha = 0.8f))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("本月预计折旧", style = MaterialTheme.typography.bodyLarge)
+                    Text("¥${String.format("%.2f", stats.monthDepreciation)}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f))
+                }
             }
         }
     }
@@ -115,7 +141,6 @@ private fun StatusCard(stats: Statistics) {
 private fun ExpandableOverviewRow(
     historyData: List<Pair<String, Double>>,
     valueColor: androidx.compose.ui.graphics.Color,
-    fontSize: androidx.compose.ui.unit.TextUnit,
     bold: Boolean = false
 ) {
     if (historyData.isEmpty()) return
@@ -138,7 +163,10 @@ private fun ExpandableOverviewRow(
                     modifier = Modifier.padding(start = 4.dp).size(16.dp)
                 )
             }
-            Text("¥${String.format("%.2f", current.second)}", fontWeight = if (bold) FontWeight.Black else FontWeight.SemiBold, fontSize = fontSize, color = valueColor)
+            Text("¥${String.format("%.2f", current.second)}",
+                fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                color = valueColor)
         }
 
         AnimatedVisibility(visible = expanded) {
@@ -151,31 +179,20 @@ private fun ExpandableOverviewRow(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 if (past.isEmpty()) {
-                    Text("还没有更早的记录", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), textAlign = TextAlign.Center)
+                    Text("还没有更早的记录", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        textAlign = TextAlign.Center)
                 } else {
                     past.forEachIndexed { i, (label, value) ->
                         Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                            Text("¥${String.format("%.2f", value)}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("¥${String.format("%.2f", value)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                         }
                         if (i < past.size - 1) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun OverviewRow(
-    label: String,
-    value: String,
-    fontSize: androidx.compose.ui.unit.TextUnit,
-    valueColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-    bold: Boolean = false
-) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-        Text(value, fontWeight = if (bold) FontWeight.Black else FontWeight.SemiBold, fontSize = fontSize, color = valueColor)
     }
 }

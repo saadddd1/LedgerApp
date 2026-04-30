@@ -77,7 +77,7 @@ fun AutoRecordTab(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     FilledTonalButton(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
-                        Text("去打开", fontWeight = FontWeight.SemiBold)
+                        Text("去打开", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -101,7 +101,7 @@ fun AutoRecordTab(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     FilledTonalButton(onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
-                        Text("去开启", fontWeight = FontWeight.SemiBold)
+                        Text("去开启", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -109,7 +109,7 @@ fun AutoRecordTab(
 
         if (pendingBills.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("暂无新账单，看来今天还没花钱", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("暂无新账单，看来今天还没花钱", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
