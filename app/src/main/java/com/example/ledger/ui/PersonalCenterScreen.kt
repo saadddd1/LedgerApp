@@ -38,11 +38,6 @@ import com.example.ledger.viewmodel.ItemViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private fun maskPhone(phone: String): String {
-    if (phone.length != 11) return phone
-    return "${phone.take(3)}****${phone.takeLast(4)}"
-}
-
 private fun formatRelativeTime(timestamp: Long): String {
     val diff = System.currentTimeMillis() - timestamp
     return when {
@@ -234,7 +229,7 @@ private fun LoginSection(
                 try {
                     ApiClient.apiService.sendCode(SendCodeRequest(email))
                     countdown = 60
-                    onMessage("验证码已发送（开发模式用 123456）")
+                    onMessage("验证码已发送")
                 } catch (e: Exception) {
                     onMessage("发验证码失败：${e.message}")
                 } finally { isSending = false }
