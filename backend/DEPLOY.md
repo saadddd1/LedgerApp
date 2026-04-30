@@ -82,6 +82,7 @@ EMAIL_HOST=smtp.qq.com
 EMAIL_PORT=465
 EMAIL_USER=你的QQ邮箱
 EMAIL_PASS=你的QQ邮箱授权码
+ADMIN_KEY=自己设一个复杂密码
 EOF
 ```
 

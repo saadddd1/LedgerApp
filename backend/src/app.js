@@ -37,6 +37,7 @@ app.get('/api/health', ensureDb, (req, res) => {
 app.use('/api/auth', ensureDb, require('./routes/auth.routes'));
 app.use('/api/sync', ensureDb, require('./routes/sync.routes'));
 app.use('/api/vip', ensureDb, require('./routes/vip.routes'));
+app.use('/admin', ensureDb, require('./routes/admin.routes'));
 
 app.use((err, req, res, next) => {
     console.error('Error:', err);
