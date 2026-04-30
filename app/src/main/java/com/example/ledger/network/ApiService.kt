@@ -8,14 +8,14 @@ import retrofit2.http.POST
 
 // --- Auth ---
 data class SendCodeRequest(
-    @SerializedName("phone") val phone: String
+    @SerializedName("email") val email: String
 )
 data class SendCodeResponse(
     @SerializedName("success") val success: Boolean
 )
 
 data class VerifyCodeRequest(
-    @SerializedName("phone") val phone: String,
+    @SerializedName("email") val email: String,
     @SerializedName("code") val code: String
 )
 data class VerifyCodeResponse(

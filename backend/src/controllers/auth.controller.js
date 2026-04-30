@@ -1,6 +1,6 @@
 const db = require('../models/db');
 const { generateToken } = require('../middleware/auth');
-const smsService = require('../services/sms.service');
+const emailService = require('../services/email.service');
 
 function generateUserId() {
     return 'usr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -8,13 +8,13 @@ function generateUserId() {
 
 // POST /api/auth/send-code
 exports.sendCode = async (req, res) => {
-    const { phone } = req.body;
-    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-        return res.status(400).json({ error: '请输入正确的手机号' });
+    const { email } = req.body;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: '请输入正确的邮箱地址' });
     }
 
-    const code = smsService.generateCode();
-    const result = await smsService.sendSms(phone, code);
+    const code = emailService.generateCode();
+    const result = await emailService.sendCode(email, code);
 
     if (result.success) {
         res.json({ success: true, message: result.devMode ? 'DEV_MODE: 验证码已打印到控制台' : '验证码已发送' });
@@ -25,22 +25,22 @@ exports.sendCode = async (req, res) => {
 
 // POST /api/auth/verify-code
 exports.verifyCode = async (req, res) => {
-    const { phone, code } = req.body;
-    if (!phone || !code) {
-        return res.status(400).json({ error: '手机号和验证码必填' });
+    const { email, code } = req.body;
+    if (!email || !code) {
+        return res.status(400).json({ error: '邮箱和验证码必填' });
     }
 
-    if (!smsService.verifyCode(phone, code)) {
+    if (!emailService.verifyCode(email, code)) {
         return res.status(400).json({ error: '验证码错误或已过期' });
     }
 
     try {
-        let user = await db.get('SELECT * FROM users WHERE phone = ?', [phone]);
+        let user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
             const userId = generateUserId();
             await db.run(
-                'INSERT INTO users (user_id, phone, created_at) VALUES (?, ?, ?)',
-                [userId, phone, Date.now()]
+                'INSERT INTO users (user_id, email, created_at) VALUES (?, ?, ?)',
+                [userId, email, Date.now()]
             );
             user = await db.get('SELECT * FROM users WHERE user_id = ?', [userId]);
         }

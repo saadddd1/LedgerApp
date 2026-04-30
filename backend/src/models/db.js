@@ -32,6 +32,7 @@ async function initDb() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE,
             phone TEXT UNIQUE,
+            email TEXT UNIQUE,
             wechat_openid TEXT UNIQUE,
             wechat_unionid TEXT,
             is_vip INTEGER DEFAULT 0,
@@ -59,6 +60,9 @@ async function initDb() {
             paid_at INTEGER
         )
     `);
+
+    // Migration: add email column to existing databases
+    try { db.run('ALTER TABLE users ADD COLUMN email TEXT UNIQUE'); } catch (_) {}
 
     saveToDisk();
 }

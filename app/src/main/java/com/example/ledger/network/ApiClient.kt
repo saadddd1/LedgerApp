@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
     // 10.0.2.2 = Android emulator's alias for host machine's localhost
     // Change to your server IP/domain before release
-    const val BASE_URL = "http://10.0.2.2:8080"
+    const val BASE_URL = "http://1.14.110.132:8080"
 
     private val okHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {

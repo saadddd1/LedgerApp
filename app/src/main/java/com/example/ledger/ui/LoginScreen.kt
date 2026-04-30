@@ -35,7 +35,7 @@ fun LoginScreen(
     onNavigateToVip: () -> Unit
 ) {
     val context = LocalContext.current
-    var phone by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isSending by remember { mutableStateOf(false) }
@@ -103,20 +103,20 @@ fun LoginScreen(
             Text("换手机、删软件，账都不会丢", fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 40.dp))
 
-            OutlinedTextField(value = phone, onValueChange = { phone = it.filter { c -> c.isDigit() }.take(11) },
-                label = { Text("手机号") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            OutlinedTextField(value = email, onValueChange = { email = it.trim().take(64) },
+                label = { Text("邮箱") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
             Spacer(modifier = Modifier.height(12.dp))
 
             // Send code button
             OutlinedButton(
                 onClick = {
-                    if (phone.length != 11) { message = "手机号得是11位吧"; return@OutlinedButton }
+                    if (!email.contains("@")) { message = "请输入正确的邮箱地址"; return@OutlinedButton }
                     scope.launch {
                         isSending = true
                         try {
-                            ApiClient.apiService.sendCode(SendCodeRequest(phone))
+                            ApiClient.apiService.sendCode(SendCodeRequest(email))
                             countdown = 60
                             message = "验证码已发送（开发模式用 123456）"
                         } catch (e: Exception) {
@@ -124,7 +124,7 @@ fun LoginScreen(
                         } finally { isSending = false }
                     }
                 },
-                enabled = phone.length == 11 && countdown == 0 && !isSending,
+                enabled = email.contains("@") && countdown == 0 && !isSending,
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(44.dp)
             ) {
@@ -144,14 +144,14 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    if (phone.length != 11 || code.length < 4) {
-                        message = "手机号和验证码总得填对吧"; return@Button
+                    if (!email.contains("@") || code.length < 4) {
+                        message = "邮箱和验证码总得填对吧"; return@Button
                     }
                     scope.launch {
                         isLoading = true
                         try {
                             val response = ApiClient.apiService.verifyCode(
-                                VerifyCodeRequest(phone, code)
+                                VerifyCodeRequest(email, code)
                             )
                             AuthSession.login(response.token, response.isVip, response.userId, response.vipExpireAt)
 

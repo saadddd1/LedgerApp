@@ -1,4 +1,4 @@
-// Alibaba Cloud SMS service
+// Tencent Cloud SMS service
 // In DEV_MODE, codes are printed to console instead of sending real SMS.
 
 const inMemoryCodes = new Map(); // phone -> { code, expiresAt }
@@ -33,40 +33,37 @@ async function sendSms(phone, code) {
         return { success: true, devMode: true };
     }
 
-    // Production: Alibaba Cloud SMS API
     try {
-        const Dysmsapi = require('@alicloud/dysmsapi20170525');
-        const { default: OpenApi, Config } = require('@alicloud/openapi-client');
+        const tencentcloud = require('tencentcloud-sdk-nodejs-sms');
+        const SmsClient = tencentcloud.sms.v20210111.Client;
 
-        const config = new Config({
-            accessKeyId: process.env.SMS_ACCESS_KEY_ID,
-            accessKeySecret: process.env.SMS_ACCESS_KEY_SECRET,
-        });
-        config.endpoint = 'dysmsapi.aliyuncs.com';
-
-        const client = new Dysmsapi.default(config);
-        const sendReq = new Dysmsapi.SendSmsRequest({
-            phoneNumbers: phone,
-            signName: process.env.SMS_SIGN_NAME,
-            templateCode: process.env.SMS_TEMPLATE_CODE,
-            templateParam: JSON.stringify({ code }),
+        const client = new SmsClient({
+            credential: {
+                secretId: process.env.SMS_SECRET_ID,
+                secretKey: process.env.SMS_SECRET_KEY,
+            },
+            region: 'ap-guangzhou',
         });
 
-        const response = await client.sendSms(sendReq);
-        if (response.body.code === 'OK') {
+        const params = {
+            SmsSdkAppId: process.env.SMS_APP_ID,
+            SignName: process.env.SMS_SIGN_NAME,
+            TemplateId: process.env.SMS_TEMPLATE_ID,
+            TemplateParamSet: [code, '5'],
+            PhoneNumberSet: ['+86' + phone],
+        };
+
+        const response = await client.SendSms(params);
+
+        if (response.SendStatusSet[0].Code === 'Ok') {
             storeCode(phone, code);
             return { success: true };
         } else {
-            console.error('SMS send failed:', response.body);
-            return { success: false, error: response.body.message };
+            console.error('SMS send failed:', response.SendStatusSet[0]);
+            return { success: false, error: response.SendStatusSet[0].Message };
         }
     } catch (error) {
         console.error('SMS send error:', error.message);
-        // Fallback: still store code in dev-liked mode when SMS fails
-        if (process.env.DEV_MODE === 'true') {
-            storeCode(phone, code);
-            return { success: true, devMode: true };
-        }
         return { success: false, error: error.message };
     }
 }
