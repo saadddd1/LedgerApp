@@ -1,6 +1,5 @@
 package com.example.ledger.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +9,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,11 +23,11 @@ private val LightColors = lightColorScheme(
     secondaryContainer = PurpleSecondaryContainer,
     onSecondaryContainer = PurpleOnSecondaryContainer,
     background = WhiteBackground,
-    onBackground = Color(0xFF1A1C20),
+    onBackground = Color(0xFF1C1C1E),
     surface = WhiteSurface,
-    onSurface = Color(0xFF1A1C20),
+    onSurface = Color(0xFF1C1C1E),
     surfaceVariant = WhiteSurfaceVariant,
-    onSurfaceVariant = Color(0xFF44474F),
+    onSurfaceVariant = Color(0xFF48484A),
     inverseSurface = DarkInverseSurface,
     inverseOnSurface = DarkInverseOnSurface,
     error = ErrorRed,
@@ -41,7 +39,7 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFA8C8FF),
+    primary = Color(0xFF6DB3FF),
     onPrimary = Color(0xFF003066),
     primaryContainer = Color(0xFF00468F),
     onPrimaryContainer = Color(0xFFDBE9FF),
@@ -50,19 +48,19 @@ private val DarkColors = darkColorScheme(
     secondaryContainer = Color(0xFF433B90),
     onSecondaryContainer = Color(0xFFE8E5FF),
     background = Color(0xFF111318),
-    onBackground = Color(0xFFE2E2E9),
+    onBackground = Color(0xFFE5E5EA),
     surface = Color(0xFF1A1C21),
-    onSurface = Color(0xFFE2E2E9),
-    surfaceVariant = Color(0xFF44474F),
-    onSurfaceVariant = Color(0xFFC4C6D0),
-    inverseSurface = Color(0xFFE2E2E9),
+    onSurface = Color(0xFFE5E5EA),
+    surfaceVariant = Color(0xFF48484A),
+    onSurfaceVariant = Color(0xFFC6C6D0),
+    inverseSurface = Color(0xFFE5E5EA),
     inverseOnSurface = Color(0xFF2D3140),
     error = Color(0xFFFFB4AB),
     errorContainer = Color(0xFF93000A),
     onError = Color(0xFF690005),
     onErrorContainer = Color(0xFFFFDAD6),
-    outline = Color(0xFF8F9199),
-    outlineVariant = Color(0xFF44474F)
+    outline = Color(0xFF8E8E93),
+    outlineVariant = Color(0xFF48484A)
 )
 
 fun Modifier.frostedBar(): Modifier = composed {
