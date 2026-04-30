@@ -61,7 +61,7 @@ class ItemViewModel(
     }
 
     private suspend fun triggerAutoSync() {
-        if (syncing || !AuthSession.isVip.value) return
+        if (syncing || !AuthSession.isLoggedIn.value) return
         val token = AuthSession.token.value ?: return
         try {
             val json = exportAllData()

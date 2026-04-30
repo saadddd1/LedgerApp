@@ -31,7 +31,6 @@ import com.example.ledger.data.AuthSession
 import com.example.ledger.network.ApiClient
 import com.example.ledger.network.SendCodeRequest
 import com.example.ledger.network.SyncUploadRequest
-import com.example.ledger.network.VipPayRequest
 import com.example.ledger.network.VerifyCodeRequest
 import androidx.compose.material3.MaterialTheme
 import com.example.ledger.viewmodel.ItemViewModel
@@ -55,11 +54,8 @@ fun PersonalCenterScreen(onNavigateBack: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     val isLoggedIn by AuthSession.isLoggedIn.collectAsState()
-    val isVip by AuthSession.isVip.collectAsState()
     val token by AuthSession.token.collectAsState()
     val lastSyncTime by AuthSession.lastSyncTime.collectAsState()
-    val vipExpireAt by AuthSession.vipExpireAt.collectAsState()
-    val isPermanentVip = vipExpireAt != null && vipExpireAt!! - System.currentTimeMillis() > 50L * 365 * 24 * 3600 * 1000
 
     val db = remember { AppDatabase.getDatabase(context) }
     val viewModel: ItemViewModel = viewModel(factory = ItemViewModel.Factory(db))
@@ -131,8 +127,6 @@ fun PersonalCenterScreen(onNavigateBack: () -> Unit) {
                 )
             } else {
                 AccountSection(
-                    isVip = isVip,
-                    isPermanentVip = isPermanentVip,
                     lastSyncTime = lastSyncTime,
                     scope = scope,
                     isLoading = isLoading,
@@ -261,19 +255,17 @@ private fun LoginSection(
                     val response = ApiClient.apiService.verifyCode(VerifyCodeRequest(email, code))
                     AuthSession.login(response.token, response.isVip, response.userId, response.vipExpireAt)
 
-                    if (response.isVip) {
-                        try {
-                            val syncData = ApiClient.apiService.downloadSyncData("Bearer ${response.token}")
-                            if (syncData.success && syncData.dataJson != null) {
-                                viewModel.importAllData(syncData.dataJson)
-                                AuthSession.updateLastSyncTime(syncData.updatedAt ?: System.currentTimeMillis())
-                            } else {
-                                val json = viewModel.exportAllData()
-                                ApiClient.apiService.uploadSyncData("Bearer ${response.token}", SyncUploadRequest(json))
-                                AuthSession.updateLastSyncTime(System.currentTimeMillis())
-                            }
-                        } catch (_: Exception) { }
-                    }
+                    try {
+                        val syncData = ApiClient.apiService.downloadSyncData("Bearer ${response.token}")
+                        if (syncData.success && syncData.dataJson != null) {
+                            viewModel.importAllData(syncData.dataJson)
+                            AuthSession.updateLastSyncTime(syncData.updatedAt ?: System.currentTimeMillis())
+                        } else {
+                            val json = viewModel.exportAllData()
+                            ApiClient.apiService.uploadSyncData("Bearer ${response.token}", SyncUploadRequest(json))
+                            AuthSession.updateLastSyncTime(System.currentTimeMillis())
+                        }
+                    } catch (_: Exception) { }
                     onMessage("登录成功")
                 } catch (e: Exception) {
                     onMessage("登录失败，验证码对了吗？")
@@ -290,8 +282,6 @@ private fun LoginSection(
 
 @Composable
 private fun AccountSection(
-    isVip: Boolean,
-    isPermanentVip: Boolean,
     lastSyncTime: Long?,
     scope: kotlinx.coroutines.CoroutineScope,
     isLoading: Boolean,
@@ -301,111 +291,58 @@ private fun AccountSection(
 ) {
     val token by AuthSession.token.collectAsState()
 
-    // User info card
+    // Sync status card
     Card(
         modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inverseSurface),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (isVip) {
-                Text("👑", fontSize = 32.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("永久会员", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(if (isPermanentVip) "永久有效" else "VIP 会员", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
+            Text("☁️", fontSize = 32.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("云端同步", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("数据自动备份到服务器", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
 
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (lastSyncTime != null) {
-                        Icon(Icons.Outlined.CloudDone, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("自动同步中 · ${formatRelativeTime(lastSyncTime)}", fontSize = 13.sp, color = Color(0xFF4CAF50))
-                    } else {
-                        Icon(Icons.Outlined.Cloud, null, tint = Color(0xFFFF9800), modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("等待首次同步", fontSize = 13.sp, color = Color(0xFFFF9800))
-                    }
-                }
-            } else {
-                Text("未开通会员", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("开通后自动云端同步", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
-            }
-        }
-    }
-
-    // VIP purchase card (non-VIP only)
-    if (!isVip) {
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        ) {
-            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("永久会员", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("￥ 18.00", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("一次购买，永久使用", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
-                        scope.launch {
-                            onLoadingChange(true)
-                            try {
-                                val response = ApiClient.apiService.createVipOrder(
-                                    "Bearer $token",
-                                    VipPayRequest("lifetime", "alipay")
-                                )
-                                AuthSession.updateVipWithExpiry(true, response.vipExpireAt)
-                                // Auto-backup after purchase
-                                val json = viewModel.exportAllData()
-                                ApiClient.apiService.uploadSyncData("Bearer $token", SyncUploadRequest(json))
-                                AuthSession.updateLastSyncTime(System.currentTimeMillis())
-                                onMessage("开通成功！自动同步已开启")
-                            } catch (e: Exception) {
-                                onMessage("开通失败：${e.message}")
-                            } finally { onLoadingChange(false) }
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
-                ) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White)
-                    else Text("立即开通", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (lastSyncTime != null) {
+                    Icon(Icons.Outlined.CloudDone, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("最近同步 · ${formatRelativeTime(lastSyncTime)}", fontSize = 13.sp, color = Color(0xFF4CAF50))
+                } else {
+                    Icon(Icons.Outlined.Cloud, null, tint = Color(0xFFFF9800), modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("等待首次同步", fontSize = 13.sp, color = Color(0xFFFF9800))
                 }
             }
         }
     }
 
-    // VIP only: manual sync button
-    if (isVip) {
-        OutlinedButton(
-            onClick = {
-                scope.launch {
-                    onLoadingChange(true)
-                    try {
-                        val json = viewModel.exportAllData()
-                        ApiClient.apiService.uploadSyncData("Bearer $token", SyncUploadRequest(json))
-                        AuthSession.updateLastSyncTime(System.currentTimeMillis())
-                        onMessage("同步成功")
-                    } catch (e: Exception) {
-                        onMessage("同步失败：${e.message}")
-                    } finally { onLoadingChange(false) }
-                }
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth().height(44.dp).padding(bottom = 8.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            else {
-                Icon(Icons.Outlined.Cloud, null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("立即同步", fontSize = 14.sp)
+    // Manual sync button
+    OutlinedButton(
+        onClick = {
+            scope.launch {
+                onLoadingChange(true)
+                try {
+                    val json = viewModel.exportAllData()
+                    ApiClient.apiService.uploadSyncData("Bearer $token", SyncUploadRequest(json))
+                    AuthSession.updateLastSyncTime(System.currentTimeMillis())
+                    onMessage("同步成功")
+                } catch (e: Exception) {
+                    onMessage("同步失败：${e.message}")
+                } finally { onLoadingChange(false) }
             }
+        },
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth().height(44.dp).padding(bottom = 8.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        if (isLoading) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+        else {
+            Icon(Icons.Outlined.Cloud, null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("立即同步", fontSize = 14.sp)
         }
     }
 }
