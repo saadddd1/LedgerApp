@@ -2,38 +2,47 @@ package com.example.ledger.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary: clean blue (iOS-style)
-val BluePrimary = Color(0xFF007AFF)
+// Gemini-inspired palette — Material 3 Expressive
+
+// Primary: Google Blue
+val BluePrimary = Color(0xFF4285F4)
 val BlueOnPrimary = Color(0xFFFFFFFF)
-val BluePrimaryContainer = Color(0xFFE3F2FF)
-val BlueOnPrimaryContainer = Color(0xFF001A45)
+val BluePrimaryContainer = Color(0xFFDBEBFF)
+val BlueOnPrimaryContainer = Color(0xFF002252)
 
-// Secondary: warm purple accent
-val PurpleSecondary = Color(0xFF6B5FF7)
+// Secondary: Gemini purple-blue gradient midpoint
+val PurpleSecondary = Color(0xFF7C6FF0)
 val PurpleOnSecondary = Color(0xFFFFFFFF)
-val PurpleSecondaryContainer = Color(0xFFEDEBFF)
-val PurpleOnSecondaryContainer = Color(0xFF1A1163)
+val PurpleSecondaryContainer = Color(0xFFECEAFF)
+val PurpleOnSecondaryContainer = Color(0xFF17008D)
 
-// Surfaces — pure neutrals, no color bias
-val WhiteBackground = Color(0xFFF5F5F5)
+// Tertiary: Teal accent
+val TealTertiary = Color(0xFF0D9FAF)
+val TealOnTertiary = Color(0xFFFFFFFF)
+val TealTertiaryContainer = Color(0xFFD3F8FD)
+val TealOnTertiaryContainer = Color(0xFF001F24)
+
+// Surfaces — slightly blue-tinted white (not pure neutral)
+val WhiteBackground = Color(0xFFF8FAFF)
 val WhiteSurface = Color(0xFFFFFFFF)
-val WhiteSurfaceVariant = Color(0xFFEEEEEE)
+val WhiteSurfaceVariant = Color(0xFFE8EDF4)
 
-// Dark surfaces
-val DarkInverseSurface = Color(0xFF1C1C1E)
-val DarkInverseOnSurface = Color(0xFFF5F5F5)
+// Dark surfaces — deep near-black with subtle blue-purple undertone
+val DarkInverseSurface = Color(0xFF2D3037)
+val DarkInverseOnSurface = Color(0xFFF0F1F5)
 
-// Error (iOS red)
-val ErrorRed = Color(0xFFFF3B30)
-val ErrorContainer = Color(0xFFFFF0EF)
+// Error: Google Red
+val ErrorRed = Color(0xFFEA4335)
+val ErrorContainer = Color(0xFFFFEDEB)
 
 // Outline
-val OutlineDim = Color(0xFFD1D1D1)
+val OutlineDim = Color(0xFF74767C)
+val OutlineVariant = Color(0xFFC3C7CF)
 
-// Frosted glass — pure white, high opacity, no tint
-val FrostedBar = Color.White.copy(alpha = 0.92f)
+// Frosted glass — light mode
+val FrostedBar = Color(0xFFFAFBFF).copy(alpha = 0.90f)
 val FrostedCard = Color.White.copy(alpha = 0.88f)
 
 // Dark frosted
-val DarkFrostedBar = Color.Black.copy(alpha = 0.88f)
-val DarkFrostedCard = Color.Black.copy(alpha = 0.82f)
+val DarkFrostedBar = Color(0xFF0D0D14).copy(alpha = 0.90f)
+val DarkFrostedCard = Color(0xFF0D0D14).copy(alpha = 0.85f)
