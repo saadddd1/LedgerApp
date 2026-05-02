@@ -75,8 +75,8 @@ class ItemViewModel(
             recurringExpenseDao.deleteAllTemplates()
             if (payload.items.isNotEmpty()) itemDao.insertAllItems(payload.items)
             if (payload.autoBills.isNotEmpty()) autoBillDao.insertAllAutoBills(payload.autoBills)
-            if (payload.expenseRecords.isNotEmpty()) expenseRecordDao.insertAllRecords(payload.expenseRecords)
-            if (payload.recurringExpenses.isNotEmpty()) recurringExpenseDao.insertAllTemplates(payload.recurringExpenses)
+            if (!payload.expenseRecords.isNullOrEmpty()) expenseRecordDao.insertAllRecords(payload.expenseRecords)
+            if (!payload.recurringExpenses.isNullOrEmpty()) recurringExpenseDao.insertAllTemplates(payload.recurringExpenses)
         } finally {
             syncing = false
         }

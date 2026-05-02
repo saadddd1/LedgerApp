@@ -8,6 +8,6 @@ import com.example.ledger.data.RecurringExpense
 data class SyncPayload(
     val items: List<Item>,
     val autoBills: List<AutoBill>,
-    val expenseRecords: List<ExpenseRecord> = emptyList(),
-    val recurringExpenses: List<RecurringExpense> = emptyList()
+    val expenseRecords: List<ExpenseRecord>? = null,
+    val recurringExpenses: List<RecurringExpense>? = null
 )

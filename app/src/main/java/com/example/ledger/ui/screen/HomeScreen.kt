@@ -64,11 +64,18 @@ fun HomeScreen(
 
     var showAddExpenseDialog by remember { mutableStateOf(false) }
     var showAddRecurringDialog by remember { mutableStateOf(false) }
-    var showRecurringListDialog by remember { mutableStateOf(false) }
     var expenseToEdit by remember { mutableStateOf<ExpenseRecord?>(null) }
     var templateToEdit by remember { mutableStateOf<RecurringExpense?>(null) }
 
     val pagerState = rememberPagerState(pageCount = { 4 })
+
+    val thisMonthLivingExpenses by remember {
+        derivedStateOf {
+            com.example.ledger.domain.usecase.CalculateStatistics.calculate(
+                items, allBills, expenseRecords, activeTemplates
+            ).thisMonthLivingExpenses
+        }
+    }
 
     // Notification permission for Android 13+
     val notificationPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -158,9 +165,7 @@ fun HomeScreen(
                     2 -> ExpenseTab(
                         expenseRecords = expenseRecords,
                         activeTemplates = activeTemplates,
-                        thisMonthTotal = com.example.ledger.domain.usecase.CalculateStatistics.calculate(
-                            items, allBills, expenseRecords, activeTemplates
-                        ).thisMonthLivingExpenses,
+                        thisMonthTotal = thisMonthLivingExpenses,
                         onDelete = { viewModel.deleteExpenseRecord(it) },
                         onEdit = { expenseToEdit = it },
                         onToggleTemplate = { viewModel.toggleRecurringExpense(it) },
@@ -243,18 +248,6 @@ fun HomeScreen(
             onEdit = { _, name, amount, category, period, day, startMonth, note ->
                 viewModel.updateRecurringExpense(template, name, amount, category, period, day, startMonth, note)
                 templateToEdit = null
-            }
-        )
-    }
-    if (showRecurringListDialog) {
-        RecurringExpenseListDialog(
-            templates = allTemplates,
-            onDismiss = { showRecurringListDialog = false },
-            onToggle = { viewModel.toggleRecurringExpense(it) },
-            onDelete = { viewModel.deleteRecurringExpense(it.id) },
-            onEdit = {
-                templateToEdit = it
-                showRecurringListDialog = false
             }
         )
     }

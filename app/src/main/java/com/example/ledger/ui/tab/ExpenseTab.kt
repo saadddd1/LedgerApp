@@ -136,12 +136,15 @@ fun ExpenseTab(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { onEditTemplate(template) }
                                         .padding(vertical = 8.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable { onEditTemplate(template) }
+                                    ) {
                                         Text(
                                             template.name,
                                             style = MaterialTheme.typography.bodyLarge,
