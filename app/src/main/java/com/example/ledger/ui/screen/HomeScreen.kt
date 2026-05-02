@@ -157,12 +157,15 @@ fun HomeScreen(
                     )
                     2 -> ExpenseTab(
                         expenseRecords = expenseRecords,
+                        activeTemplates = activeTemplates,
                         thisMonthTotal = com.example.ledger.domain.usecase.CalculateStatistics.calculate(
                             items, allBills, expenseRecords, activeTemplates
                         ).thisMonthLivingExpenses,
                         onDelete = { viewModel.deleteExpenseRecord(it) },
                         onEdit = { expenseToEdit = it },
-                        onManageRecurring = { showRecurringListDialog = true }
+                        onToggleTemplate = { viewModel.toggleRecurringExpense(it) },
+                        onEditTemplate = { templateToEdit = it },
+                        onAddRecurring = { showAddRecurringDialog = true }
                     )
                     3 -> OverviewTab(
                         items = items,
